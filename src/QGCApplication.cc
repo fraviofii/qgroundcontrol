@@ -402,10 +402,10 @@ void QGCApplication::init()
 
 void QGCApplication::_initForNormalAppBoot()
 {
-#ifdef Q_OS_DARWIN
+//#ifdef Q_OS_DARWIN
     // Gstreamer video playback requires OpenGL
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
-#endif
+//#endif
 
     QQuickStyle::setStyle("Basic");
     _qmlAppEngine = _toolbox->corePlugin()->createQmlApplicationEngine(this);
