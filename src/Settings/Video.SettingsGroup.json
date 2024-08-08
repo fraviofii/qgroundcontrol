@@ -26,6 +26,13 @@
     "default":     ""
 },
 {
+    "name":             "rtspBroadcastUrl",
+    "shortDesc": "Video RTSP Broadcast Url",
+    "longDesc":  "RTSP url address and port to bind to for broadcast arrived video stream. Example: rtsp://34.133.44.141:8554/live",
+    "type":             "string",
+    "default":     ""
+},
+{
     "name":             "tcpUrl",
     "shortDesc": "Video TCP Url",
     "longDesc":  "TCP url address and port to bind to for video stream. Example: 192.168.143.200:3001",

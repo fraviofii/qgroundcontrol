@@ -31,6 +31,7 @@ SettingsPage {
     property bool   _isMPEGTS:                  _isGst && _videoSource === _videoSettings.mpegtsVideoSource
     property bool   _videoAutoStreamConfig:     _videoManager.autoStreamConfigured
     property real   _urlFieldWidth:             ScreenTools.defaultFontPixelWidth * 25
+    property real   _broadcastUrlFieldWidth:             ScreenTools.defaultFontPixelWidth * 25
     property bool   _requiresUDPPort:           _isUDP264 || _isUDP265 || _isMPEGTS
 
     SettingsGroupLayout {
@@ -59,6 +60,14 @@ SettingsPage {
             label:                      qsTr("RTSP URL")
             fact:                       _videoSettings.rtspUrl
             visible:                    _isRTSP && _videoSettings.rtspUrl.visible
+        }
+
+        LabelledFactTextField {
+            Layout.fillWidth:           true
+            textFieldPreferredWidth:    _broadcastUrlFieldWidth
+            label:                      qsTr("RTSP Broadcast URL")
+            fact:                       _videoSettings.rtspBroadcastUrl
+            visible:                    _isRTSP && _videoSettings.rtspBroadcastUrl.visible
         }
 
         LabelledFactTextField {
