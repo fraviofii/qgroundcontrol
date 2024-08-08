@@ -106,6 +106,7 @@ protected slots:
     void _videoSourceChanged        ();
     void _udpPortChanged            ();
     void _rtspUrlChanged            ();
+    void _rtspBroadcastUrlChanged   ();
     void _tcpUrlChanged             ();
     void _lowLatencyModeChanged     ();
     bool _updateUVC                 ();
@@ -117,7 +118,7 @@ protected:
 
     void _initVideo       ();
     bool _updateSettings  (unsigned id);
-    bool _updateVideoUri  (unsigned id, const QString& uri);
+    bool _updateVideoUri  (unsigned id, const QString& uri, QString broadcastUri = "");
     void _cleanupOldVideos();
     void _restartAllVideos();
     void _restartVideo    (unsigned id);
@@ -132,6 +133,7 @@ protected:
         VideoReceiver* receiver = nullptr;
         void* sink = nullptr;
         QString uri;
+        QString broadcastUri;
         bool started = false;
         bool lowLatencyStreaming = false;
         size_t index = 0;

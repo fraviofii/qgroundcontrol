@@ -92,6 +92,7 @@ VideoManager::setToolbox(QGCToolbox *toolbox)
    connect(_videoSettings->videoSource(),   &Fact::rawValueChanged, this, &VideoManager::_videoSourceChanged);
    connect(_videoSettings->udpPort(),       &Fact::rawValueChanged, this, &VideoManager::_udpPortChanged);
    connect(_videoSettings->rtspUrl(),       &Fact::rawValueChanged, this, &VideoManager::_rtspUrlChanged);
+   connect(_videoSettings->rtspBroadcastUrl(), &Fact::rawValueChanged, this, &VideoManager::_rtspBroadcastUrlChanged);
    connect(_videoSettings->tcpUrl(),        &Fact::rawValueChanged, this, &VideoManager::_tcpUrlChanged);
    connect(_videoSettings->aspectRatio(),   &Fact::rawValueChanged, this, &VideoManager::aspectRatioChanged);
    connect(_videoSettings->lowLatencyMode(),&Fact::rawValueChanged, this, &VideoManager::_lowLatencyModeChanged);
@@ -526,6 +527,12 @@ VideoManager::_rtspUrlChanged()
     _restartVideo(0);
 }
 
+void
+VideoManager::_rtspBroadcastUrlChanged()
+{
+    _restartVideo(0);
+}
+
 //-----------------------------------------------------------------------------
 void
 VideoManager::_tcpUrlChanged()
@@ -737,7 +744,7 @@ VideoManager::_updateSettings(unsigned id)
     else if (source == VideoSettings::videoSourceMPEGTS)
         settingsChanged |= _updateVideoUri(0, QStringLiteral("mpegts://0.0.0.0:%1").arg(_videoSettings->udpPort()->rawValue().toInt()));
     else if (source == VideoSettings::videoSourceRTSP)
-        settingsChanged |= _updateVideoUri(0, _videoSettings->rtspUrl()->rawValue().toString());
+        settingsChanged |= _updateVideoUri(0, _videoSettings->rtspUrl()->rawValue().toString(), _videoSettings->rtspBroadcastUrl()->rawValue().toString());
     else if (source == VideoSettings::videoSourceTCP)
         settingsChanged |= _updateVideoUri(0, QStringLiteral("tcp://%1").arg(_videoSettings->tcpUrl()->rawValue().toString()));
     else if (source == VideoSettings::videoSource3DRSolo)
@@ -766,7 +773,7 @@ VideoManager::_updateSettings(unsigned id)
 
 //-----------------------------------------------------------------------------
 bool
-VideoManager::_updateVideoUri(unsigned id, const QString& uri)
+VideoManager::_updateVideoUri(unsigned id, const QString& uri, QString broadcastUri)
 {
     if (id > (_videoReceiverData.size() - 1)) {
         qCDebug(VideoManagerLog) << "Unsupported receiver id" << id;
@@ -780,6 +787,7 @@ VideoManager::_updateVideoUri(unsigned id, const QString& uri)
     qCDebug(VideoManagerLog) << "New Video URI " << uri;
 
     _videoReceiverData[id].uri = uri;
+    _videoReceiverData[id].broadcastUri = broadcastUri;
 
     return true;
 }
@@ -840,7 +848,11 @@ VideoManager::_startReceiver(unsigned id)
         return;
     }
 
-    _videoReceiverData[id].receiver->start(_videoReceiverData[id].uri, timeout, _videoReceiverData[id].lowLatencyStreaming ? -1 : 0);
+    if (_videoReceiverData[id].broadcastUri.isEmpty()) {
+        _videoReceiverData[id].receiver->start(_videoReceiverData[id].uri, timeout, _videoReceiverData[id].lowLatencyStreaming ? -1 : 0);
+    } else {
+        _videoReceiverData[id].receiver->start(_videoReceiverData[id].uri, _videoReceiverData[id].broadcastUri, timeout, _videoReceiverData[id].lowLatencyStreaming ? -1 : 0);
+    }
 }
 
 //----------------------------------------------------------------------------------------
