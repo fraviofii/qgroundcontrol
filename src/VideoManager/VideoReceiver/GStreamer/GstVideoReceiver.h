@@ -89,6 +89,7 @@ public:
 
 public slots:
     virtual void start(const QString& uri, unsigned timeout, int buffer = 0);
+    virtual void start(const QString& uri, const QString& broadcastUri, unsigned timeout, int buffer = 0);
     virtual void stop(void);
     virtual void startDecoding(void* sink);
     virtual void stopDecoding(void);
@@ -157,6 +158,7 @@ protected:
     uint64_t            _udpReconnect_us;
 
     QString             _uri;
+    QString             _broadcastUri;
     unsigned            _timeout;
     int                 _buffer;
 

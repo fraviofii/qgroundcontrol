@@ -121,6 +121,11 @@ QtMultimediaReceiver::~QtMultimediaReceiver()
     qCDebug(QtMultimediaReceiverLog) << Q_FUNC_INFO << this;
 }
 
+void QtMultimediaReceiver::start(const QString &uri, const QString &broadcastUri, unsigned timeout, int buffer) {
+    Q_UNUSED(broadcastUri);
+    start(uri, timeout, buffer);
+}
+
 void QtMultimediaReceiver::start(const QString &uri, unsigned timeout, int buffer)
 {
     Q_UNUSED(buffer);

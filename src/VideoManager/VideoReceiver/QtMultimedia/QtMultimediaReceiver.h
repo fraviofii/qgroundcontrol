@@ -33,6 +33,7 @@ public:
 
 public slots:
     void start(const QString &uri, unsigned timeout, int buffer = 0) override;
+    void start(const QString &uri, const QString &broadcastUri, unsigned timeout, int buffer = 0) override;
     void stop() override;
     void startDecoding(void *sink) override;
     void stopDecoding() override;

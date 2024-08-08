@@ -70,10 +70,17 @@ GstVideoReceiver::~GstVideoReceiver(void)
 void
 GstVideoReceiver::start(const QString& uri, unsigned timeout, int buffer)
 {
+    start(uri,"", timeout, buffer);
+}
+
+void
+GstVideoReceiver::start(const QString& uri, const QString& broadcastUri, unsigned timeout, int buffer)
+{
     if (_needDispatch()) {
         QString cachedUri = uri;
-        _slotHandler.dispatch([this, cachedUri, timeout, buffer]() {
-            start(cachedUri, timeout, buffer);
+        QString cachedBroadcastUri = broadcastUri;
+        _slotHandler.dispatch([this, cachedUri, cachedBroadcastUri, timeout, buffer]() {
+            start(cachedUri, cachedBroadcastUri, timeout, buffer);
         });
         return;
     }
@@ -95,6 +102,7 @@ GstVideoReceiver::start(const QString& uri, unsigned timeout, int buffer)
     }
 
     _uri = uri;
+    _broadcastUri = broadcastUri;
     _timeout = timeout;
     _buffer = buffer;
 
@@ -107,6 +115,8 @@ GstVideoReceiver::start(const QString& uri, unsigned timeout, int buffer)
 
     GstElement* decoderQueue = nullptr;
     GstElement* recorderQueue = nullptr;
+    GstElement* rtspQueue = nullptr;
+    GstElement* rtspSink = nullptr;
 
     do {
         if((_tee = gst_element_factory_make("tee", nullptr)) == nullptr)  {
@@ -139,6 +149,21 @@ GstVideoReceiver::start(const QString& uri, unsigned timeout, int buffer)
 
         g_object_set(_decoderValve, "drop", TRUE, nullptr);
 
+        if (!_broadcastUri.isEmpty()) {
+            if((rtspQueue = gst_element_factory_make("queue", nullptr)) == nullptr)  {
+                qCCritical(VideoReceiverLog) << "gst_element_factory_make('queue') failed";
+                break;
+            }
+
+            if((rtspSink = gst_element_factory_make("rtspclientsink", nullptr)) == nullptr)  {
+                qCCritical(VideoReceiverLog) << "gst_element_factory_make('rtspclientsink') failed";
+                break;
+            }
+
+            // Set the RTSP server URL
+            g_object_set(rtspSink, "location", _broadcastUri.toStdString().c_str(), nullptr);
+        }
+
         if((recorderQueue = gst_element_factory_make("queue", nullptr)) == nullptr)  {
             qCCritical(VideoReceiverLog) << "gst_element_factory_make('queue') failed";
             break;
@@ -164,6 +189,9 @@ GstVideoReceiver::start(const QString& uri, unsigned timeout, int buffer)
         }
 
         gst_bin_add_many(GST_BIN(_pipeline), _source, _tee, decoderQueue, _decoderValve, recorderQueue, _recorderValve, nullptr);
+        if (!_broadcastUri.isEmpty()) {
+            gst_bin_add_many(GST_BIN(_pipeline), rtspQueue, rtspSink, nullptr);
+        }
 
         pipelineUp = true;
 
@@ -200,6 +228,13 @@ GstVideoReceiver::start(const QString& uri, unsigned timeout, int buffer)
         if(!gst_element_link_many(_tee, recorderQueue, _recorderValve, nullptr)) {
             qCCritical(VideoReceiverLog) << "Unable to link recorder queue";
             break;
+        }
+
+         if (!_broadcastUri.isEmpty()) {
+            if(!gst_element_link_many(_tee, rtspQueue, rtspSink, nullptr)) {
+                qCCritical(VideoReceiverLog) << "Unable to link RTSP push elements";
+                break;
+            }
         }
 
         GstBus* bus = nullptr;
@@ -255,6 +290,16 @@ GstVideoReceiver::start(const QString& uri, unsigned timeout, int buffer)
             if (_source != nullptr) {
                 gst_object_unref(_source);
                 _source = nullptr;
+            }
+
+            if (rtspSink != nullptr) {
+                gst_object_unref(rtspSink);
+                rtspSink = nullptr;
+            }
+
+            if (rtspQueue != nullptr) {
+                gst_object_unref(rtspQueue);
+                rtspQueue = nullptr;
             }
         }
 

@@ -69,6 +69,7 @@ public slots:
     //      0 - default buffer length
     //      N - buffer length, ms
     virtual void start(const QString& uri, unsigned timeout, int buffer = 0) = 0;
+    virtual void start(const QString& uri, const QString& broadcastUri, unsigned timeout, int buffer = 0) = 0;
     virtual void stop(void) = 0;
     virtual void startDecoding(void* sink) = 0;
     virtual void stopDecoding(void) = 0;

@@ -27,6 +27,7 @@ DECLARE_SETTINGGROUP(Video, "Video")
     QVariantList videoSourceList;
 #ifdef QGC_GST_STREAMING
     videoSourceList.append(videoSourceRTSP);
+    videoSourceList.append(videoBroadcastRTSP);
     videoSourceList.append(videoSourceUDPH264);
     videoSourceList.append(videoSourceUDPH265);
     videoSourceList.append(videoSourceTCP);
@@ -159,6 +160,15 @@ DECLARE_SETTINGSFACT_NO_FUNC(VideoSettings, rtspUrl)
         connect(_rtspUrlFact, &Fact::valueChanged, this, &VideoSettings::_configChanged);
     }
     return _rtspUrlFact;
+}
+
+DECLARE_SETTINGSFACT_NO_FUNC(VideoSettings, rtspBroadcastUrl)
+{
+    if (!_rtspBroadcastUrlFact) {
+        _rtspBroadcastUrlFact = _createSettingsFact(rtspBroadcastUrlName);
+        connect(_rtspBroadcastUrlFact, &Fact::valueChanged, this, &VideoSettings::_configChanged);
+    }
+    return _rtspBroadcastUrlFact;
 }
 
 DECLARE_SETTINGSFACT_NO_FUNC(VideoSettings, tcpUrl)
