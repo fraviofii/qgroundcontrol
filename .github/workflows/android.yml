@@ -1,6 +1,8 @@
 name: Android
 
 on:
+  workflow_dispatch:
+
   push:
     branches:
       - master
@@ -38,7 +40,8 @@ jobs:
       QT_ANDROID_KEYSTORE_ALIAS: QGCAndroidKeyStore
       QT_ANDROID_KEYSTORE_STORE_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       QT_ANDROID_KEYSTORE_KEY_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-      QT_ANDROID_ABIS: ${{ matrix.BuildType == 'Release' && 'armeabi-v7a;arm64-v8a' || 'arm64-v8a' }}
+      # QT_ANDROID_ABIS: ${{ matrix.BuildType == 'Release' && 'armeabi-v7a;arm64-v8a' || 'arm64-v8a' }}
+      QT_ANDROID_ABIS: ${{ matrix.BuildType == 'Debug' && 'armeabi-v7a' || 'armeabi-v7a' }}
       GST_VERSION: 1.22.12
 
     steps:
@@ -188,11 +191,3 @@ jobs:
         working-directory: ${{ runner.temp }}/shadow_build_dir
         run: cp ./android-build/*.apk ./${{ env.ARTIFACT }}
 
-      - name: Upload Build File
-        uses: ./.github/actions/upload
-        if: matrix.BuildType == 'Release'
-        with:
-          artifact_name: ${{ env.ARTIFACT }}
-          aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          source: ''
